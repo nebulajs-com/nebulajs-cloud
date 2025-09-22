@@ -623,11 +623,14 @@ export class ApplicationService {
         if (count > 0) {
             throw new NebulaBizError(ApplicationErrors.ImageExist)
         }
+        const date = moment().format('YYYY-MM-DD')
+        const logfile = `logs/build/${app.code}/${app.code}-${version}.${date}.log`
         // 镜像记录
         const image = await ClImage.create({
             name: `${code}`,
             remark,
             buildStatus: BuildStatus.BUILDING,
+            logfile,
             version,
             type,
             appId: id,
@@ -636,7 +639,7 @@ export class ApplicationService {
         // 打docker镜像
         const dockerService = new DockerService(serverId)
         dockerService
-            .buildImage(app, code, version)
+            .buildImage(app, version)
             .then((ret) => {
                 nebula.logger.info('打包应用镜像成功：%s', `${code}:${version}`)
                 image.set({ buildStatus: BuildStatus.SUCCESS })

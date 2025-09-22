@@ -78,10 +78,52 @@
                 {
                     "type": "operation",
                     "label": "操作",
-                    "width": 80,
+                    "width": 150,
                     "align": "center",
                     "id": "u:e5e135d333f2",
                     "buttons": [
+                        {
+                            "type": "button",
+                            "label": "日志",
+                            "level": "link",
+                            "onEvent": {
+                                "click": {
+                                    "actions": [
+                                        {
+                                            "actionType": "dialog",
+                                            "dialog": {
+                                                "type": "dialog",
+                                                "title": "查看日志",
+                                                "size": "lg",
+                                                "actions": [
+                                                ],
+                                                "body": [
+                                                    {
+                                                        "className": "m-t-sm",
+                                                        "type": "log",
+                                                        "height": 510,
+                                                        "disableColor": false,
+                                                        "source": {
+                                                            "url": "/portal/cl-image/$id/log",
+                                                            "method": "get"
+                                                        },
+                                                        "id": "u:ef7b91217625",
+                                                        "autoScroll": true,
+                                                        "operation": [
+                                                            "restart",
+                                                            "stop",
+                                                            "filter",
+                                                            "showLineNumber",
+                                                            "clear"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        },
                         {
                             "type": "button",
                             "label": "删除",

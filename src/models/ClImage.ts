@@ -21,6 +21,7 @@ export class ClImage extends BaseModel<
     declare createdBy: string
     declare updatedBy: string
     declare remark: string
+    declare logfile: string
     declare appId: ForeignKey<string>
 
     static initAttributes = (sequelize) =>
@@ -49,6 +50,10 @@ export class ClImage extends BaseModel<
                     type: DataTypes.STRING(1),
                     comment: '构建状态',
                     defaultValue: BuildStatus.BUILDING,
+                },
+                logfile: {
+                    type: DataTypes.STRING(500),
+                    comment: '日志文件',
                 },
                 createdBy: {
                     type: DataTypes.STRING,

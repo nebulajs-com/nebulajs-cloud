@@ -1,7 +1,8 @@
-import { NebulaErrors, QueryParser } from 'nebulajs-core'
-import { Op } from 'sequelize'
+import { NebulaErrors, NebulaKoaContext, QueryParser } from 'nebulajs-core'
 import { ClImage } from '../../models/ClImage'
 import { ApplicationService } from '../../services/ApplicationService'
+import path from 'path'
+import { CommonUtil } from '../../utils/common-util'
 
 export = {
     'get /cl-image': async function (ctx, next) {
@@ -70,5 +71,24 @@ export = {
         const app = await ApplicationService.getCurrentApplication(ctx)
         await ApplicationService.deleteAppImage(app, image)
         ctx.ok()
+    },
+
+    'get /cl-image/:id/log': async (ctx: NebulaKoaContext, next) => {
+        const id = ctx.getParam('id')
+        const instance = await ClImage.getByPk(id)
+        if (!instance) {
+            return ctx.bizError(NebulaErrors.BadRequestErrors.DataNotFound)
+        }
+        ctx.res.writeHead(200, {
+            'Content-Type': 'text/plain',
+            // 'Content-Type': 'application/vnd.docker.raw-stream',
+            // Connection: 'upgrade',
+            // Upgrade: 'tcp',
+        })
+
+        const logFile = path.join(process.cwd(), instance.logfile)
+        // const logText = fs.readFileSync(logFile).toString()
+        // ctx.res.write(logText)
+        await CommonUtil.tailFile(logFile, ctx.res)
     },
 }

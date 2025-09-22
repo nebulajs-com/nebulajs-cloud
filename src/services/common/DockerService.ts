@@ -46,12 +46,8 @@ export class DockerService {
         }
     }
 
-    async buildImage(
-        appModel: ClApplication,
-        image: string,
-        version = 'latest'
-    ) {
-        nebula.logger.info('打包应用镜像：%s', `${image}:${version}`)
+    async buildImage(appModel: ClApplication, version = 'latest') {
+        nebula.logger.info('打包应用镜像：%s', `${appModel.code}:${version}`)
         if (!DockerService._buildPool) {
             DockerService._buildPool = new Piscina({
                 // maxThreads: 5,
@@ -64,7 +60,6 @@ export class DockerService {
         return await DockerService._buildPool.run(
             {
                 app: appModel.dataValues,
-                image,
                 version,
             },
             {}

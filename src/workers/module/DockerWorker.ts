@@ -6,14 +6,14 @@ export class DockerWorker {
     docker
     logger: Logger
 
-    constructor(server) {
+    constructor(server: { socketPath; protocol; host; port }, logger: Logger) {
         const { socketPath, protocol, host, port } = server || {}
         if (socketPath) {
             this.docker = new Docker({ socketPath })
         } else {
             this.docker = new Docker({ protocol, host, port })
         }
-        this.logger = new NebulaLogger({}).getLogger('build')
+        this.logger = logger
     }
 
     followDockerProgress(stream) {
