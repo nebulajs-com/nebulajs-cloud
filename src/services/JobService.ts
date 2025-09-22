@@ -79,13 +79,14 @@ export class JobService {
         // 分环境处理
         for (const env of envList) {
             await JobService.runClientJobByEnv(job, {
+                appCode: job.attrs.data.appCode,
                 env,
                 jobExecutions,
             })
         }
     }
 
-    static async runClientJobByEnv(job, { env, jobExecutions }) {
+    static async runClientJobByEnv(job, { appCode, env, jobExecutions }) {
         nebula.logger.info(
             `[${job.attrs?.data?.appCode}] 分环境运行客户端任务，env: ${env}，job: %o`,
             job.attrs
@@ -93,11 +94,11 @@ export class JobService {
         const name = job.attrs.name
         const appId = job.attrs.data.appId
         const jobId = job.attrs._id.toHexString()
-        const timestamp = moment().format('YYYYMMDDHHmmssSSS')
-        const logTimestamp = moment().format('YYYY-MM-DD HH:mm:ss.SSS')
-        const logPath = `logs/jobs/${job.attrs.name}`
+        const timestamp = moment().format('YYYYMMDDHHmmss')
+        const logTimestamp = moment().format('YYYY-MM-DD HH:mm:ss')
+        const logPath = `logs/jobs/${appCode}`
         const logDir = path.join(process.cwd(), logPath)
-        const logfileName = `${env}-${timestamp}.log`
+        const logfileName = `${name}-${env.toUpperCase()}-${timestamp}.log`
         const logfile = path.join(logDir, logfileName)
 
         !fs.existsSync(logDir) && fs.mkdirSync(logDir, { recursive: true })
@@ -163,7 +164,13 @@ export class JobService {
         // }
 
         const appModel = await ClApplication.getByPk(appId)
-        const jobName = appModel.code + '-' + uuidv4()
+        const jobName =
+            appModel.code +
+            '-' +
+            scriptPath
+                .replace(/[\/]/g, '-')
+                .replace(/\.ts$/, '')
+                .replace(/\.js$/, '')
 
         // 定义
         JobService.defineRemoteJob(jobName)

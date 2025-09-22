@@ -9,10 +9,8 @@ import { ClApplication } from '../../models/ClApplication'
 import { ObjectId } from 'mongodb'
 import { Job } from '@hokify/agenda'
 import { ClJobExecution } from '../../models/ClJobExecution'
-import stripAnsi from 'strip-ansi'
-import fs from 'fs'
 import path from 'path'
-import TailFile from '@logdna/tail-file'
+import { CommonUtil } from '../../utils/common-util'
 
 export = {
     'get /cl-job': async (ctx, next) => {
@@ -214,26 +212,8 @@ export = {
         })
 
         const logFile = path.join(process.cwd(), instance.logfile)
-        const logText = fs.readFileSync(logFile).toString()
-        ctx.res.write(logText)
-        await new Promise((resolve, reject) => {
-            const tail = new TailFile(logFile, { encoding: 'utf8' })
-                .on('data', (chunk) => {
-                    const data = stripAnsi(chunk.toString())
-                    ctx.res.write(data)
-                })
-                .on('tail_error', (err) => {
-                    ctx.res.end('Tail file error')
-                    resolve({})
-                })
-                .on('error', (err) => {
-                    ctx.res.end('Tail file stream error')
-                    resolve({})
-                })
-                .start()
-                .catch((err) => {
-                    reject(err)
-                })
-        })
+        // const logText = fs.readFileSync(logFile).toString()
+        // ctx.res.write(logText)
+        await CommonUtil.tailFile(logFile, ctx.res)
     },
 }
