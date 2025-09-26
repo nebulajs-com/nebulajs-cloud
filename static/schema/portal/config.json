@@ -49,7 +49,7 @@
                                 "body": [
                                     {
                                         "name": "env",
-                                        "label": "环境名",
+                                        "label": "配置名",
                                         "id": "u:bcdf6bc22233",
                                         "type": "input-text",
                                         "description": "由英文和数字组成。 不少于3位",
