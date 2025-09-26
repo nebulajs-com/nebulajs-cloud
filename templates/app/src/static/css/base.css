@@ -142,12 +142,12 @@
   box-shadow: 0 0 0 2px rgba(5, 50, 255, 0.06);
 }
 
-:not(is-disabled) .cxd-TextControl-input,
-:not(is-disabled) .cxd-TextareaControl-input {
+:not(.is-disabled) .cxd-TextControl-input,
+:not(.is-disabled) .cxd-TextareaControl-input {
   transition: border-color 0.2s ease;
 }
-:not(is-disabled) .cxd-TextControl-input:hover,
-:not(is-disabled) .cxd-TextareaControl-input:hover {
+:not(.is-disabled) .cxd-TextControl-input:hover,
+:not(.is-disabled) .cxd-TextareaControl-input:hover {
   box-shadow: 0 0 0 2px rgba(5, 50, 255, 0.06);
 }
 
@@ -264,7 +264,7 @@
 .cxd-Table .cxd-Table-table td .cxd-PlainField {
   min-height: 30px;
   display: inline-block;
-  line-height: 30px;
+  line-height: 25px;
 }
 .cxd-Table .cxd-Table-table .cxd-TableCell-sortBtn {
   margin-right: 5px;

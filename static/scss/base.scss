@@ -174,7 +174,7 @@
         box-shadow: 0 0 0 2px rgb(5 50 255 / 6%);
     }
 }
-:not(is-disabled){
+:not(.is-disabled){
     .cxd-TextControl-input,
     .cxd-TextareaControl-input{
         transition: border-color .2s ease;
@@ -321,7 +321,7 @@
                 //align-items: center;
                 min-height: 30px;
                 display: inline-block;
-                line-height: 30px;
+                line-height: 25px;
             }
         }
         .cxd-TableCell-sortBtn{
