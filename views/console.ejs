@@ -22,11 +22,13 @@
                             "body": [
                                 {
                                     "type": "dropdown-button",
-                                    "btnClassName": "nb-icon-btn ptl-header-apps",
+                                    "className": "ptl-header-apps",
+                                    "btnClassName": "nb-icon-btn",
                                     "menuClassName": "nb-header-dropdown",
                                     "label": "<%=currentApp.name%>",
                                     "icon": "nb-icon nb-icon-yingyongguanli",
                                     "rightIcon": "nb-icon nb-icon-xiala",
+                                    "visibleOn": "${STARTSWITH(REPLACE(window:location.hash,'#/','/'),'/portal')}",
                                     "hideCaret": true,
                                     "closeOnClick": true,
                                     "buttons": [
