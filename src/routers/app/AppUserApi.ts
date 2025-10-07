@@ -13,6 +13,21 @@ import { ExcelUtil } from '../../utils/excel-util'
 import { ResourceService } from '../../services/app/ResourceService'
 
 export = {
+    /**
+     * @swagger
+     *
+     * /app-user/allocate/roles:
+     *   post:
+     *     summary: 用户分配角色
+     *     tags:
+     *       - 用户
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *     responses:
+     *       200:
+     *         description: ok
+     */
     'post /app-user/allocate/roles': async function (ctx, next) {
         ctx.checkRequired(['userIds', 'roleIds'])
         const { userIds, roleIds } = ctx.request.body

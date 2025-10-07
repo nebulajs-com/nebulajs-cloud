@@ -258,6 +258,9 @@ export class UserService {
                 as: 'roles',
             },
         })
+        if (userModels.find((u) => u.login === Constants.DEFAULT_ADMIN_USER)) {
+            throw new NebulaBizError(UserErrors.CannotAllocateRoleForAdmin)
+        }
         const roleModels = await AppRole.findAll({
             where: {
                 code: { [Op.in]: roleCodes },

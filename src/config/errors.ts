@@ -96,6 +96,10 @@ export class UserErrors extends NebulaErrors.BadRequestErrors {
         code: 21007,
         msg: '无法删除管理员',
     }
+    static CannotAllocateRoleForAdmin = {
+        code: 21008,
+        msg: '无法为管理员分配角色',
+    }
 }
 
 /**
