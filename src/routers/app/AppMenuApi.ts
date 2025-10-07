@@ -55,20 +55,7 @@ export = {
     },
 
     'get /app-menu/tree': async function (ctx, next) {
-        const list = (
-            await AppMenu.findAll({
-                where: {
-                    [Op.or]: [{ appId: ctx.clientAppId }, { isSystem: true }],
-                },
-                order: [['seq', 'asc']],
-                attributes: {
-                    exclude: AuditModelProps,
-                },
-            })
-        ).map((item) => item.dataValues as any)
-        const treeList = TreeUtils.getTreeList(list, (item: any) => {
-            item.value = item.id
-        })
+        const treeList = await MenuService.getMenuTree(ctx.clientAppId)
         ctx.ok({
             pages: treeList,
         })

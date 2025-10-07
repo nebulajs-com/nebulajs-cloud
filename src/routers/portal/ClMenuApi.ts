@@ -1,24 +1,8 @@
-import { AppMenu } from '../../models/AppMenu'
-import { Op } from 'sequelize'
-import { AuditModelProps } from '../../config/constants'
-import { TreeUtils } from 'nebulajs-core/lib/utils'
+import { MenuService } from '../../services/app/MenuService'
 
 export = {
     'get /cl-menu/tree': async (ctx, next) => {
-        const list = (
-            await AppMenu.findAll({
-                where: {
-                    [Op.or]: [{ appId: ctx.appId }, { isSystem: true }],
-                },
-                order: [['seq', 'asc']],
-                attributes: {
-                    exclude: AuditModelProps,
-                },
-            })
-        ).map((item) => item.dataValues as any)
-        const treeList = TreeUtils.getTreeList(list, (item: any) => {
-            item.value = item.id
-        })
+        const treeList = await MenuService.getMenuTree(ctx.appId)
         ctx.ok({
             pages: treeList,
         })

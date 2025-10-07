@@ -168,4 +168,21 @@ export class MenuService {
             await nebula.redis.del(delKeys)
         }
     }
+
+    static async getMenuTree(appId) {
+        const list = (
+            await AppMenu.findAll({
+                where: {
+                    [Op.or]: [{ appId }, { isSystem: true }],
+                },
+                order: [['seq', 'asc']],
+                attributes: {
+                    exclude: AuditModelProps,
+                },
+            })
+        ).map((item) => item.dataValues as any)
+        return TreeUtils.getTreeList(list, (item: any) => {
+            item.value = item.id
+        })
+    }
 }
