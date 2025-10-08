@@ -40,6 +40,25 @@ export = {
         ctx.ok()
     },
 
+    /**
+     * @swagger
+     *
+     * /app-dict/search/codes:
+     *   get:
+     *     summary: 根据字典编码查询多个字典信息
+     *     tags:
+     *       - 字典
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: codes
+     *         in: query
+     *         required: false
+     *         description: 编码列表，多个用逗号','分割。
+     *     responses:
+     *       200:
+     *         description: ok
+     */
     'get /app-dict/search/codes': async function (ctx, next) {
         // ctx.checkRequired('codes')
         const { where } = QueryParser.parseFilter(ctx.request.query)

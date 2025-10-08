@@ -70,15 +70,16 @@ export = {
             }
 
             // 删除未更新的剩余资源
-            await AppResource.destroy({
-                where: {
-                    appId: ctx.clientAppId,
-                    id: {
-                        [Op.in]: Array.from(existResIdsSet),
+            existResIdsSet.size > 0 &&
+                (await AppResource.destroy({
+                    where: {
+                        appId: ctx.clientAppId,
+                        id: {
+                            [Op.in]: Array.from(existResIdsSet),
+                        },
                     },
-                },
-                transaction,
-            })
+                    transaction,
+                }))
 
             nebula.logger.info(
                 '同步应用资源成功，应用：%s，同步资源：%s，删除资源：%s',
