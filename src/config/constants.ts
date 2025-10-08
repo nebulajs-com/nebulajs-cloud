@@ -3,6 +3,7 @@ export const Constants = {
     NEBULA_APP_ID: 'nebula',
     COMMON_FORM_MODEL: '',
     ROLE_ADMIN: 'ROLE_ADMIN',
+    ROLE_GUEST: 'ROLE_GUEST',
     DEFAULT_ADMIN_USER: 'admin',
     DEFAULT_ADMIN_PASSWORD: 'admin',
 }

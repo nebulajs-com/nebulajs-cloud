@@ -2,12 +2,13 @@ import { NebulaBizError, NebulaErrors, NebulaKoaContext } from 'nebulajs-core'
 import { ApplicationErrors, UserErrors } from '../../config/errors'
 import { UserService } from '../../services/app/UserService'
 import { AuthUtils } from 'nebulajs-core/lib/utils'
-import { Cookies } from '../../config/constants'
+import { Constants, Cookies } from '../../config/constants'
 import bcrypt from 'bcryptjs'
 import randomstring from 'randomstring'
 import { GiteeClient } from '../../services/client/GiteeClient'
 import { AppUser } from '../../models/AppUser'
 
+const pkg = require('../../../package.json')
 const OAuthModel = require('../../oauth/oauth-model')
 
 module.exports = {
@@ -143,58 +144,52 @@ module.exports = {
         const { id, login, name, avatar_url } = await utils.getUserInfo(
             access_token
         )
-        const events = await utils.getRepoLatestStarEvent(access_token)
-        if (events.find((ev) => ev.actor.login === login)) {
-            //star用户
-            const nebulaLogin = 'gitee_' + login
-            const appId = 'nebula'
-            let user = await UserService.getUserByLoginAndAppId(
-                'nebula',
-                nebulaLogin
-            )
-            if (!user) {
-                const defaultPwd = randomstring.generate(8)
-                const salt = await bcrypt.genSaltSync(10)
-                const hash = await bcrypt.hashSync(defaultPwd, salt)
-                user = await AppUser.create(
-                    {
-                        appId,
-                        password: hash,
-                        login: nebulaLogin,
-                        name,
-                        avatar: avatar_url,
-                    },
-                    {}
-                )
-                // 分配演示角色
-                await UserService.allocateRoles(appId, [user.id], ['ROLE_DEMO'])
-            }
-            const nebulaToken = await OAuthModel.generateAccessToken(
+        const nebulaLogin = 'gitee_' + login
+        let user = await UserService.getUserByLoginAndAppId(
+            Constants.NEBULA_APP_ID,
+            nebulaLogin
+        )
+        if (!user) {
+            const defaultPwd = randomstring.generate(8)
+            const salt = await bcrypt.genSaltSync(10)
+            const hash = await bcrypt.hashSync(defaultPwd, salt)
+            user = await AppUser.create(
                 {
-                    id: 'nebula-client-id',
-                    code: 'nebula',
-                    appId: 'nebula',
-                    grants: ['password', 'refresh_token'],
+                    appId: Constants.NEBULA_APP_ID,
+                    password: hash,
+                    login: nebulaLogin,
+                    name,
+                    avatar: avatar_url,
                 },
-                {
-                    login: user.login,
-                    name: user.name,
-                    roles: ['ROLE_DEMO'],
-                },
-                'web-app'
+                {}
             )
-            ctx.cookies.set(Cookies.ACCESS_TOKEN, nebulaToken, {
-                path: '/',
-                httpOnly: false,
-            })
-            ctx.redirect('/')
-        } else {
-            throw new NebulaBizError({
-                code: 21099,
-                msg: '演示环境只允许Star用户登录，请先在gitee上Star该项目。（https://gitee.com/nebulajs/nebulajs-cloud）',
-                status: 400,
-            })
+            // 分配客人角色
+            await UserService.allocateRoles(
+                Constants.NEBULA_APP_ID,
+                [user.id],
+                [Constants.ROLE_GUEST]
+            )
         }
+        // 生成token
+        const nebulaToken = await OAuthModel.generateAccessToken(
+            {
+                id: pkg.nebula.clientId,
+                code: Constants.NEBULA_APP_CODE,
+                appId: Constants.NEBULA_APP_ID,
+                grants: ['password', 'refresh_token'],
+            },
+            {
+                login: user.login,
+                name: user.name,
+                roles: user.roles.map((r) => r.code),
+            },
+            'web-app'
+        )
+        ctx.cookies.set(Cookies.ACCESS_TOKEN, nebulaToken, {
+            path: '/',
+            httpOnly: false,
+        })
+        ctx.redirect('/')
     },
 
     'get /oauth/callback/cas': async (ctx, next) => {
