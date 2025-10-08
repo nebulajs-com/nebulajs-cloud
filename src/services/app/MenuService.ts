@@ -10,7 +10,7 @@ import { RoleService } from './RoleService'
 import { ClPage } from '../../models/ClPage'
 import { AppMenu } from '../../models/AppMenu'
 import { TreeUtils } from 'nebulajs-core/lib/utils'
-import { NebulaBizError } from 'nebulajs-core'
+import { NebulaBizError, TreeNode } from 'nebulajs-core'
 import { UserErrors } from '../../config/errors'
 
 export class MenuService {
@@ -18,9 +18,16 @@ export class MenuService {
      * 获取系统菜单
      * @param appId
      * @param login
-     * @returns {Promise<[{children: [], label: string}]>}
+     * @param group
+     * @param defaultPage
+     * @returns
      */
-    static async getMenuNav(appId: string, login: string) {
+    static async getMenuNav(
+        appId: string,
+        login: string,
+        group: boolean = true,
+        defaultPage: boolean = true
+    ) {
         const userModel = await UserService.getUserByLoginAndAppId(appId, login)
         if (userModel && userModel.status !== DataStatus.ENABLED) {
             throw new NebulaBizError(UserErrors.InvalidUser)
@@ -60,6 +67,7 @@ export class MenuService {
                     isPage: true,
                     label: item.name,
                     url: item.url,
+                    schemaFile: item.schemaFile,
                     schemaApi,
                     visible: false, // 页面级都属于隐藏菜单
                 }
@@ -85,33 +93,41 @@ export class MenuService {
             .map((item) => item.dataValues)
 
         // 3.菜单成树并将菜单和页面进行匹配
-        let treeList = TreeUtils.getTreeList(menuList as any, (menu: any) => {
-            // 查找与菜单URL匹配的页面
-            const pageIndex = pageList.findIndex((p) => p.url === menu.url)
-            if (pageIndex >= 0) {
-                const page = pageList[pageIndex]
-                menu.schemaApi = page.schemaApi
-                menu.className = 'has-multi-pages'
-                // 删除URL已匹配的页面，转换为菜单
-                pageList.splice(pageIndex, 1)
+        let treeList = TreeUtils.getTreeList<TreeNode & { group?: string }>(
+            menuList,
+            (menu: any) => {
+                // 查找与菜单URL匹配的页面
+                const pageIndex = pageList.findIndex((p) => p.url === menu.url)
+                if (pageIndex >= 0) {
+                    const page = pageList[pageIndex]
+                    menu.schemaFile = page.schemaFile
+                    menu.schemaApi = page.schemaApi
+                    menu.className = 'has-multi-pages'
+                    // 删除URL已匹配的页面，转换为菜单
+                    pageList.splice(pageIndex, 1)
+                }
             }
-        }).concat(pageList as any[])
+        ).concat(pageList as any[])
 
         // 4.菜单分组
-        const groupMenu = this.groupMenuNav(treeList)
+        if (group) {
+            treeList = this.groupMenuNav(treeList)
+        }
 
         // 5.添加默认页
-        groupMenu[0].children.push({
-            id: '1',
-            isPage: true,
-            isDefaultPage: true,
-            label: '默认页',
-            url: '/',
-            schemaApi: `schema/index.json`,
-            visible: false,
-        })
+        if (defaultPage) {
+            ;(treeList[0].children as Array<any>).push({
+                id: '1',
+                isPage: true,
+                isDefaultPage: true,
+                label: '默认页',
+                url: '/',
+                schemaApi: `schema/index.json`,
+                visible: false,
+            })
+        }
 
-        return groupMenu
+        return treeList
     }
 
     static async getMenuIdsByRoleCodes(appId, roleCodes: string[]) {
@@ -137,11 +153,15 @@ export class MenuService {
         return new Set(menuIds)
     }
 
-    static groupMenuNav(treeList) {
+    static groupMenuNav<T extends TreeNode>(
+        treeList: Array<T & { group?: string }>
+    ) {
         //添加分组
         const defaultGroup = {
             label: '默认分组',
             children: [],
+            id: null,
+            pid: null,
         }
         const groups = [defaultGroup]
         for (let menu of treeList) {
@@ -151,6 +171,8 @@ export class MenuService {
                     groups.push({
                         label: menu.group,
                         children: [menu],
+                        id: null,
+                        pid: null,
                     })
                 } else {
                     group.children.push(menu)

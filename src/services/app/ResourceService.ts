@@ -4,52 +4,89 @@ import { TreeUtils } from 'nebulajs-core/lib/utils'
 import { TreeNode } from 'nebulajs-core'
 import { AppRole } from '../../models/AppRole'
 import { Op } from 'sequelize'
+import { MenuService } from './MenuService'
 
 export class ResourceService {
-    static async getResourceTree(appId) {
-        const list = await AppResource.findAll({
+    static async getResourceTree(appId, login) {
+        const resList = await AppResource.findAll({
             where: {
                 [Op.or]: [{ appId }, { isSystem: true }],
             },
             order: [
                 ['group', 'asc'],
+                ['method', 'asc'],
                 ['url', 'asc'],
             ],
             attributes: {
                 exclude: AuditModelProps,
             },
         })
-
-        const pageList: TreeNode[] = []
-        const resList: TreeNode[] = []
-        list.map((r) => r.dataValues).forEach((r) => {
-            r.group = r.group || '系统资源'
-            r.name = r.name || ''
-            if (!pageList.find((p) => p.id === r.group)) {
-                pageList.push({
-                    id: r.group,
-                    pid: null,
-                    seq: 0,
-                    children: [],
-                    label: r.group,
-                })
+        const groupedResIds = new Set()
+        const menuTree = await MenuService.getMenuNav(
+            appId,
+            login,
+            false,
+            false
+        )
+        // 递归菜单
+        this.recursionFind<
+            TreeNode & { schemaFile?: string; visible?: boolean }
+        >(menuTree, (node) => {
+            if (node.schemaFile) {
+                if (!node.children) {
+                    node.children = []
+                }
+                resList
+                    .filter((r) => node.schemaFile === r.group)
+                    .forEach((res, index) => {
+                        node.children.push({
+                            //...res,
+                            id: res.id,
+                            pid: node.id,
+                            seq: index,
+                            children: [],
+                            label: res.name + ':' + res.method + ' ' + res.url,
+                        })
+                        groupedResIds.add(res.id)
+                    })
+                if (node.children.length > 0) {
+                    //如果查找到资源，显示出这个菜单
+                    //visible=false，input-tree不显示
+                    node.visible = true
+                }
             }
-            resList.push({
-                ...r,
-                pid: r.group,
-                seq: 1,
-                children: [],
-                label: r.name + ':' + r.method + ' ' + r.url,
-            })
         })
 
-        const treeList = TreeUtils.getTreeList(
-            pageList.concat(resList),
-            (item: any) => {
-                item.value = item.id
-            }
-        )
-        return treeList
+        const ungroupedList = resList
+            .filter((res) => !groupedResIds.has(res.id))
+            .map((res, index) => {
+                return {
+                    id: res.id,
+                    pid: '0',
+                    seq: index,
+                    children: [],
+                    label: (res.name || '') + ':' + res.method + ' ' + res.url,
+                }
+            })
+        const sysMenu = {
+            id: '0',
+            label: '基础系统资源',
+            pid: null,
+            seq: -1,
+            children: ungroupedList,
+        }
+        menuTree.unshift(sysMenu)
+        return menuTree
+    }
+
+    static recursionFind<T extends TreeNode>(
+        menuTree: Array<T> = [],
+        iterateFn: (node: T) => void = () => {}
+    ) {
+        for (const item of menuTree) {
+            iterateFn(item)
+            this.recursionFind(item.children, iterateFn)
+        }
     }
     static async findResourcesByRoleCodes(
         appId,
