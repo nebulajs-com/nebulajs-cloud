@@ -736,6 +736,7 @@ export class ApplicationService {
                     dockerFile,
                     status: InstanceStatus.STOPPED,
                     host: appConfig.servers[serverId]?.host,
+                    extHost: appConfig.servers[serverId]?.extHost || '',
                     ports: ports.join(','),
                     subPorts: subPorts.join(','),
                     env: env,

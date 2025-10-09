@@ -267,6 +267,7 @@ app: {
             // socketPath: '/var/run/docker.sock',
             protocol: 'http',
             host: '127.0.0.1', //host字段需要用到，暂不使用socketPath配置
+            // extHost: '127.0.0.1', //外网IP
             port: 2375,
         },
     },

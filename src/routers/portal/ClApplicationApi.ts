@@ -265,9 +265,11 @@ export = {
             docURL = '',
             devURL = ''
         if (vsCodeInstance && vsCodeInstance.status === '2') {
-            const { host, ports, status } = vsCodeInstance
-            appURL = `http://${host}:${ports.split(',')[0]}`
-            devURL = `http://${host}:${ports.split(',')[1]}/?folder=/root/src`
+            const { host, extHost, ports, status } = vsCodeInstance
+            appURL = `http://${extHost}:${ports.split(',')[0]}`
+            devURL = `http://${extHost}:${
+                ports.split(',')[1]
+            }/?folder=/root/src`
             docURL = `${appURL}/swagger/index.html`
         }
         let commitList = []

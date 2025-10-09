@@ -24,6 +24,7 @@ export class ClInstance extends BaseModel<
     declare containerId: string
     declare serverId: string
     declare host: string
+    declare extHost: string
     declare ports: string
     declare subPorts: string
     declare volumeMapping: string
@@ -77,6 +78,10 @@ export class ClInstance extends BaseModel<
                 host: {
                     type: DataTypes.STRING,
                     comment: '主机/IP',
+                },
+                extHost: {
+                    type: DataTypes.STRING,
+                    comment: '主机/IP（外网）',
                 },
                 ports: {
                     type: DataTypes.STRING,
